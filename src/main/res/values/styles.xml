@@ -9,23 +9,23 @@
     <style name="Theme.Material" parent="Theme.AppCompat.Light.NoActionBar">
         <item name="android:alertDialogTheme">@style/Theme.Material.Dialog.Alert</item>
         <item name="android:dialogTheme">@style/Theme.Material.Dialog</item>
-        <item name="android:navigationBarColor">@color/material_accent_700</item>
+        <!--<item name="android:navigationBarColor">@color/material_accent_300</item>-->
         <item name="colorAccent">@color/material_accent_500</item>
         <item name="colorButtonNormal">@color/material_accent_500</item>
-        <item name="colorPrimary">@color/material_accent_500</item>
-        <item name="colorPrimaryDark">@color/material_accent_700</item>
+        <item name="colorPrimary">@color/material_main_color</item>
+        <item name="colorPrimaryDark">@color/material_main_color</item>
     </style>
 
     <style name="Theme.Material.DialogBase" parent="Theme.AppCompat.Light.Dialog">
         <item name="colorAccent">@color/material_accent_500</item>
-        <item name="colorPrimary">@color/material_accent_500</item>
-        <item name="colorPrimaryDark">@color/material_accent_700</item>
+        <item name="colorPrimary">@color/material_main_color</item>
+        <item name="colorPrimaryDark">@color/material_main_color</item>
     </style>
 
     <style name="Theme.Material.Dialog.AlertBase" parent="Theme.AppCompat.Light.Dialog.Alert">
         <item name="colorAccent">@color/material_accent_500</item>
-        <item name="colorPrimary">@color/material_accent_500</item>
-        <item name="colorPrimaryDark">@color/material_accent_700</item>
+        <item name="colorPrimary">@color/material_main_color</item>
+        <item name="colorPrimaryDark">@color/material_main_color</item>
     </style>
 
     <style name="Theme.Material.Dialog" parent="Theme.Material.DialogBase">

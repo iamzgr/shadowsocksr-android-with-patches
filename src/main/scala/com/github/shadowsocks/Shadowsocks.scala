@@ -43,6 +43,7 @@ import java.net.{HttpURLConnection, URL}
 import java.util
 import java.util.{GregorianCalendar, Locale}
 
+import android.animation.ObjectAnimator
 import android.app.backup.BackupManager
 import android.app.{Activity, ProgressDialog}
 import android.content._
@@ -54,6 +55,7 @@ import android.support.v4.content.ContextCompat
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.Toolbar
 import android.util.Log
+import android.view.View.OnClickListener
 import android.view.{View, ViewGroup}
 import android.widget._
 import com.github.jorgecastilloprz.FABProgressCircle
@@ -62,8 +64,15 @@ import com.github.shadowsocks.database._
 import com.github.shadowsocks.utils.CloseUtils._
 import com.github.shadowsocks.utils._
 import com.github.shadowsocks.job.SSRSubUpdateJob
-
 import com.github.shadowsocks.ShadowsocksApplication.app
+import com.google.android.gms.ads.MobileAds
+import com.google.android.gms.ads.InterstitialAd
+import com.google.android.gms.ads.AdRequest
+import com.google.android.gms.ads.AdListener
+import com.google.android.gms.ads.reward.RewardedVideoAd
+import com.sugarsvalley.svpn.ui.{MainActivity, PurchaseActivity}
+import com.sugarsvalley.svpn.utils.PixelUtil
+import com.sugarsvalley.svpn.widget.DoughnutProgress
 
 import scala.util.Random
 
@@ -104,8 +113,11 @@ class Shadowsocks extends AppCompatActivity with ServiceBoundContext {
   var fab: FloatingActionButton = _
   var fabProgressCircle: FABProgressCircle = _
   var progressDialog: ProgressDialog = _
+  var circle_progress: DoughnutProgress = _
   var state = State.STOPPED
   var currentProfile = new Profile
+  var newMainHandler: Handler = null
+  var iv_cart: ImageView = null
 
   // Services
   private val callback = new IShadowsocksServiceCallback.Stub {
@@ -113,31 +125,40 @@ class Shadowsocks extends AppCompatActivity with ServiceBoundContext {
       handler.post(() => {
         s match {
           case State.CONNECTING =>
-            fab.setBackgroundTintList(greyTint)
-            fab.setImageResource(R.drawable.ic_start_busy)
-            fab.setEnabled(false)
-            fabProgressCircle.show()
-            preferences.setEnabled(false)
-            stat.setVisibility(View.GONE)
+            tv_connect.setText(R.string.vpn_connecting)
+            tv_connect.setClickable(false)
+            showCircleProgress()
+//            fab.setBackgroundTintList(greyTint)
+//            fab.setImageResource(R.drawable.ic_start_busy)
+//            fab.setEnabled(false)
+//            fabProgressCircle.show()
+//            preferences.setEnabled(false)
+//            stat.setVisibility(View.GONE)
           case State.CONNECTED =>
-            fab.setBackgroundTintList(greenTint)
-            if (state == State.CONNECTING) {
-              fabProgressCircle.beginFinalAnimation()
-            } else {
-              fabProgressCircle.postDelayed(hideCircle, 1000)
-            }
-            fab.setEnabled(true)
+            tv_connect.setText(R.string.vpn_connected)
+            tv_connect.setClickable(true)
+            handler.postDelayed(() => hideCircleProgress(), 1000)
+//            fab.setBackgroundTintList(greenTint)
+//            if (state == State.CONNECTING) {
+//              fabProgressCircle.beginFinalAnimation()
+//            } else {
+//              fabProgressCircle.postDelayed(hideCircle, 1000)
+//            }
+//            fab.setEnabled(true)
             changeSwitch(checked = true)
-            preferences.setEnabled(false)
-            stat.setVisibility(View.VISIBLE)
+//            preferences.setEnabled(false)
+//            stat.setVisibility(View.VISIBLE)
             if (app.isNatEnabled) connectionTestText.setVisibility(View.GONE) else {
               connectionTestText.setVisibility(View.VISIBLE)
               connectionTestText.setText(getString(R.string.connection_test_pending))
             }
           case State.STOPPED =>
-            fab.setBackgroundTintList(greyTint)
-            fabProgressCircle.postDelayed(hideCircle, 1000)
-            fab.setEnabled(true)
+            tv_connect.setText(R.string.vpn_connect)
+            tv_connect.setClickable(true)
+            handler.postDelayed(() => hideCircleProgress(), 1000)
+//            fab.setBackgroundTintList(greyTint)
+//            fabProgressCircle.postDelayed(hideCircle, 1000)
+//            fab.setEnabled(true)
             changeSwitch(checked = false)
             if (m != null) {
               val snackbar = Snackbar.make(findViewById(android.R.id.content),
@@ -147,15 +168,19 @@ class Shadowsocks extends AppCompatActivity with ServiceBoundContext {
               snackbar.show
               Log.e(TAG, "Error to start VPN service: " + m)
             }
-            preferences.setEnabled(true)
-            stat.setVisibility(View.GONE)
+//            preferences.setEnabled(true)
+//            stat.setVisibility(View.GONE)
           case State.STOPPING =>
-            fab.setBackgroundTintList(greyTint)
-            fab.setImageResource(R.drawable.ic_start_busy)
-            fab.setEnabled(false)
-            if (state == State.CONNECTED) fabProgressCircle.show()  // ignore for stopped
-            preferences.setEnabled(false)
-            stat.setVisibility(View.GONE)
+            tv_connect.setClickable(false)
+            if (state == State.CONNECTED)
+              showCircleProgress()
+
+//            fab.setBackgroundTintList(greyTint)
+//            fab.setImageResource(R.drawable.ic_start_busy)
+//            fab.setEnabled(false)
+//            if (state == State.CONNECTED) fabProgressCircle.show()  // ignore for stopped
+//            preferences.setEnabled(false)
+//            stat.setVisibility(View.GONE)
         }
         state = s
       })
@@ -176,7 +201,9 @@ class Shadowsocks extends AppCompatActivity with ServiceBoundContext {
 
   override def onServiceConnected() {
     // Update the UI
-    if (fab != null) fab.setEnabled(true)
+    if (tv_connect != null) tv_connect.setClickable(true)
+//    if (fab != null) fab.setEnabled(true)
+
     updateState()
     if (Build.VERSION.SDK_INT >= 21 && app.isNatEnabled) {
       val snackbar = Snackbar.make(findViewById(android.R.id.content), R.string.nat_deprecated, Snackbar.LENGTH_LONG)
@@ -186,7 +213,8 @@ class Shadowsocks extends AppCompatActivity with ServiceBoundContext {
   }
 
   override def onServiceDisconnected() {
-    if (fab != null) fab.setEnabled(false)
+    if (tv_connect != null) tv_connect.setClickable(false)
+//    if (fab != null)fab.setEnabled(false)
   }
 
 
@@ -203,6 +231,11 @@ class Shadowsocks extends AppCompatActivity with ServiceBoundContext {
   private var rxText: TextView = _
   private var txRateText: TextView = _
   private var rxRateText: TextView = _
+  private var mInterstitialAd: InterstitialAd = _
+
+//  private var ll_conntecBtn: LinearLayout = _
+  private var tv_connect: TextView = _
+  private var tv_server_location: TextView = _
 
   private lazy val greyTint = ContextCompat.getColorStateList(this, R.color.material_blue_grey_700)
   private lazy val greenTint = ContextCompat.getColorStateList(this, R.color.material_green_700)
@@ -210,15 +243,39 @@ class Shadowsocks extends AppCompatActivity with ServiceBoundContext {
   private lazy val preferences =
     getFragmentManager.findFragmentById(android.R.id.content).asInstanceOf[ShadowsocksSettings]
 
-  val handler = new Handler()
+  var handler: Handler = new Handler() {
+    override def handleMessage(msg: Message): Unit = {
+      msg.what match {
+        case Scala2JavaBridge.MESSAGE_CONNECT_BUTTON_CLICK =>
+          clickConncetBtn()
+        case Scala2JavaBridge.MESSAGE_START_PROFILE =>
+          startActivity(new Intent(Shadowsocks.this, classOf[ProfileManagerActivity]))
+        case Scala2JavaBridge.MESSAGE_NEW_MAIN_HANDLER_READY =>
+          newMainHandler = msg.obj.asInstanceOf[Handler]
+          Log.e(TAG, "receive newMainHandler")
+        case _ =>
+      }
+    }
+  }
 
   private def changeSwitch(checked: Boolean) {
     serviceStarted = checked
-    fab.setImageResource(if (checked) R.drawable.ic_start_connected else R.drawable.ic_start_idle)
-    if (fab.isEnabled) {
-      fab.setEnabled(false)
-      handler.postDelayed(() => fab.setEnabled(true), 1000)
+    if (tv_connect.isClickable) {
+      tv_connect.setClickable(false)
+      handler.postDelayed(() => tv_connect.setClickable(true), 1000)
     }
+//    fab.setImageResource(if (checked) R.drawable.ic_start_connected else R.drawable.ic_start_idle)
+//    if (fab.isEnabled) {
+//      fab.setEnabled(false)
+//      handler.postDelayed(() => fab.setEnabled(true), 1000)
+//    }
+
+//    if (newMainHandler != null) {
+//      Log.e("handleMessage", "newMainHandler send msg")
+//      //            super.handleMessage(msg);
+//      if (checked) newMainHandler.sendEmptyMessage(Scala2JavaBridge.CONNECT_STATUS_CONNECTED)
+//      else newMainHandler.sendEmptyMessage(Scala2JavaBridge.CONNECT_STATUS_DISCONNECTED)
+//    }
   }
 
   private def showProgress(msg: Int): Handler = {
@@ -253,6 +310,37 @@ class Shadowsocks extends AppCompatActivity with ServiceBoundContext {
 
     super.onCreate(savedInstanceState)
     setContentView(R.layout.layout_main)
+/*
+    MobileAds.initialize(this, "ca-app-pub-9293841874269644~3114136828")
+    mInterstitialAd = new InterstitialAd(this)
+    mInterstitialAd.setAdUnitId("ca-app-pub-3940256099942544/1033173712")
+    mInterstitialAd.loadAd(new AdRequest.Builder().build)
+
+    mInterstitialAd.setAdListener(new AdListener() {
+      override def onAdLoaded(): Unit = {
+        // Code to be executed when an ad finishes loading.
+      }
+
+      override def onAdFailedToLoad(errorCode: Int): Unit = {
+        // Code to be executed when an ad request fails.
+      }
+      override def onAdOpened(): Unit = {
+        // Code to be executed when the ad is displayed.
+      }
+      override def onAdLeftApplication(): Unit = {
+        // Code to be executed when the user has left the app.
+      }
+      override def onAdClosed(): Unit = {
+        // Code to be executed when when the interstitial ad is closed.
+        mInterstitialAd.loadAd(new AdRequest.Builder().build)
+      }
+    })
+*/
+
+    TestActivity.setMainHandler(handler)
+//    MainActivity.setMainHandler(handler)
+//    startActivity(new Intent(this, classOf[MainActivity]))
+
     // Initialize Toolbar
     val toolbar = findViewById(R.id.toolbar).asInstanceOf[Toolbar]
     toolbar.setTitle("shadowsocks R") // non-translatable logo
@@ -263,7 +351,7 @@ class Shadowsocks extends AppCompatActivity with ServiceBoundContext {
     title.setFocusable(true)
     title.setGravity(0x10)
     title.getLayoutParams.height = ViewGroup.LayoutParams.MATCH_PARENT
-    title.setOnClickListener(_ => startActivity(new Intent(this, classOf[ProfileManagerActivity])))
+    title.setOnClickListener(_ => startActivity(new Intent(this, classOf[TestActivity])))
     val typedArray = obtainStyledAttributes(Array(R.attr.selectableItemBackgroundBorderless))
     title.setBackgroundResource(typedArray.getResourceId(0, 0))
     typedArray.recycle
@@ -277,6 +365,39 @@ class Shadowsocks extends AppCompatActivity with ServiceBoundContext {
     txRateText = findViewById(R.id.txRate).asInstanceOf[TextView]
     rxText = findViewById(R.id.rx).asInstanceOf[TextView]
     rxRateText = findViewById(R.id.rxRate).asInstanceOf[TextView]
+//    ll_conntecBtn = findViewById(R.id.ll_connect).asInstanceOf[LinearLayout]
+    tv_server_location = findViewById(R.id.tv_server_location).asInstanceOf[TextView]
+    val ll_nodesList = findViewById(R.id.ll_region).asInstanceOf[LinearLayout]
+    val view: View = findViewById(R.id.view_main_surface)
+    val iv_purchase = findViewById(R.id.iv_perchase).asInstanceOf[ImageView]
+    iv_cart = findViewById(R.id.iv_cart).asInstanceOf[ImageView]
+    initView()
+
+    view.setOnClickListener(new OnClickListener {
+      override def onClick(view: View): Unit = {
+      }
+    })
+//    ll_conntecBtn.setOnClickListener(new View.OnClickListener() {
+//      override def onClick(view: View): Unit = {
+//        clickConncetBtn()
+//      }
+//    })
+    iv_cart.setOnClickListener(new OnClickListener {
+      override def onClick(view: View): Unit = {
+        startActivity(new Intent(Shadowsocks.this, classOf[PurchaseActivity]))
+      }
+    })
+    ll_nodesList.setOnClickListener(new OnClickListener {
+      override def onClick(view: View): Unit = {
+        startActivity(new Intent(Shadowsocks.this, classOf[ServerNodesActivity]))
+      }
+    })
+    iv_purchase.setOnClickListener(new OnClickListener {
+      override def onClick(view: View): Unit = {
+        startActivity(new Intent(Shadowsocks.this, classOf[TestActivity]))
+      }
+    })
+
     stat.setOnClickListener(_ => {
       val id = synchronized {
         testCount += 1
@@ -317,16 +438,21 @@ class Shadowsocks extends AppCompatActivity with ServiceBoundContext {
       }
     })
 
-    fab = findViewById(R.id.fab).asInstanceOf[FloatingActionButton]
-    fabProgressCircle = findViewById(R.id.fabProgressCircle).asInstanceOf[FABProgressCircle]
-    fab.setOnClickListener(_ => if (serviceStarted) serviceStop()
-      else if (bgService != null) prepareStartService()
-      else changeSwitch(checked = false))
-    fab.setOnLongClickListener((v: View) => {
-      Utils.positionToast(Toast.makeText(this, if (serviceStarted) R.string.stop else R.string.connect,
-        Toast.LENGTH_SHORT), fab, getWindow, 0, Utils.dpToPx(this, 8)).show
-      true
+    tv_connect = findViewById(R.id.tv_ice_connect).asInstanceOf[TextView]
+    tv_connect.setOnClickListener((v: View) => {
+      clickConncetBtn()
     })
+    circle_progress = findViewById(R.id.circle_progress).asInstanceOf[DoughnutProgress]
+
+//    fab = findViewById(R.id.fab).asInstanceOf[FloatingActionButton]
+//    fabProgressCircle = findViewById(R.id.fabProgressCircle).asInstanceOf[FABProgressCircle]
+//    fab.setOnClickListener((v: View) => {
+//      clickConncetBtn()})
+//    fab.setOnLongClickListener((v: View) => {
+//      Utils.positionToast(Toast.makeText(this, if (serviceStarted) R.string.stop else R.string.connect,
+//        Toast.LENGTH_SHORT), fab, getWindow, 0, Utils.dpToPx(this, 8)).show
+//      true
+//    })
     updateTraffic(0, 0, 0, 0)
 
     app.ssrsubManager.getFirstSSRSub match {
@@ -339,6 +465,39 @@ class Shadowsocks extends AppCompatActivity with ServiceBoundContext {
     SSRSubUpdateJob.schedule()
 
     handler.post(() => attachService)
+
+    hideCircleProgress()
+  }
+
+  private def initView(): Unit = {
+    var distance = PixelUtil.getWindowWidth(this) - PixelUtil.dp2px(90, this)
+    distance -= 60
+    distance /= 2
+    val xtransAnimator = ObjectAnimator.ofFloat(iv_cart, "translationX", 0f, 0f - distance, 0f, distance, 0f)
+    xtransAnimator.setDuration(8000)
+    xtransAnimator.setRepeatCount(-1)
+    xtransAnimator.start()
+  }
+
+  private def clickConncetBtn(): Unit = {
+    if (serviceStarted) serviceStop()
+    else if (bgService != null) prepareStartService()
+    else changeSwitch(checked = false)
+  }
+
+  private def showAd(): Unit = {
+    if (mInterstitialAd.isLoaded) mInterstitialAd.show
+  }
+
+  private def showCircleProgress() {
+
+//    circle_progress.start()
+//    circle_progress.setVisibility(View.VISIBLE)
+  }
+
+  private def hideCircleProgress() {
+//    circle_progress.stop()
+//    circle_progress.setVisibility(View.GONE)
   }
 
   private def hideCircle() {
@@ -353,38 +512,45 @@ class Shadowsocks extends AppCompatActivity with ServiceBoundContext {
     if (bgService != null) {
       bgService.getState match {
         case State.CONNECTING =>
-          fab.setBackgroundTintList(greyTint)
+          tv_connect.setText(R.string.vpn_connecting)
+          showCircleProgress()
+//          fab.setBackgroundTintList(greyTint)
+//          fab.setImageResource(R.drawable.ic_start_busy)
           serviceStarted = false
-          fab.setImageResource(R.drawable.ic_start_busy)
-          preferences.setEnabled(false)
-          fabProgressCircle.show()
-          stat.setVisibility(View.GONE)
+//          preferences.setEnabled(false)
+//          fabProgressCircle.show()
+//          stat.setVisibility(View.GONE)
         case State.CONNECTED =>
-          fab.setBackgroundTintList(greenTint)
+          tv_connect.setText(R.string.vpn_connected)
+          handler.postDelayed(() => hideCircleProgress(), 1000)
+//          fab.setBackgroundTintList(greenTint)
+//          fab.setImageResource(R.drawable.ic_start_connected)
           serviceStarted = true
-          fab.setImageResource(R.drawable.ic_start_connected)
-          preferences.setEnabled(false)
-          fabProgressCircle.postDelayed(hideCircle, 100)
-          stat.setVisibility(View.VISIBLE)
+//          preferences.setEnabled(false)
+//          fabProgressCircle.postDelayed(hideCircle, 100)
+//          stat.setVisibility(View.VISIBLE)
           if (resetConnectionTest || state != State.CONNECTED)
             if (app.isNatEnabled) connectionTestText.setVisibility(View.GONE) else {
               connectionTestText.setVisibility(View.VISIBLE)
               connectionTestText.setText(getString(R.string.connection_test_pending))
             }
         case State.STOPPING =>
-          fab.setBackgroundTintList(greyTint)
+          showCircleProgress()
+//          fab.setBackgroundTintList(greyTint)
+//          fab.setImageResource(R.drawable.ic_start_busy)
           serviceStarted = false
-          fab.setImageResource(R.drawable.ic_start_busy)
-          preferences.setEnabled(false)
-          fabProgressCircle.show()
-          stat.setVisibility(View.GONE)
+//          preferences.setEnabled(false)
+//          fabProgressCircle.show()
+//          stat.setVisibility(View.GONE)
         case _ =>
-          fab.setBackgroundTintList(greyTint)
+          tv_connect.setText(R.string.vpn_connect)
+          handler.postDelayed(() => hideCircleProgress(), 1000)
+//          fab.setBackgroundTintList(greyTint)
+//          fab.setImageResource(R.drawable.ic_start_idle)
           serviceStarted = false
-          fab.setImageResource(R.drawable.ic_start_idle)
-          preferences.setEnabled(true)
-          fabProgressCircle.postDelayed(hideCircle, 100)
-          stat.setVisibility(View.GONE)
+//          preferences.setEnabled(true)
+//          fabProgressCircle.postDelayed(hideCircle, 100)
+//          stat.setVisibility(View.GONE)
       }
       state = bgService.getState
     }
@@ -421,6 +587,7 @@ class Shadowsocks extends AppCompatActivity with ServiceBoundContext {
 
   private def updatePreferenceScreen(profile: Profile) {
     preferences.setProfile(profile)
+    tv_server_location.setText(profile.name)
   }
 
   override def onStart() {

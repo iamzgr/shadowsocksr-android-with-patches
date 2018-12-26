@@ -273,11 +273,35 @@ class ProfileManager(dbHelper: DBHelper) {
     }
   }
 
+  def getAllProfilesByName: Option[List[Profile]] = {
+    try {
+      import scala.collection.JavaConversions._
+      Option(dbHelper.profileDao.query(dbHelper.profileDao.queryBuilder.orderBy("name", true).prepare).toList)
+    } catch {
+      case ex: Exception =>
+        Log.e(TAG, "getAllProfiles", ex)
+        app.track(ex)
+        None
+    }
+  }
+
+  def getAllProfilesByLocation: Option[List[Profile]] = {
+    try {
+      import scala.collection.JavaConversions._
+      Option(dbHelper.profileDao.query(dbHelper.profileDao.queryBuilder.orderBy("location", true).prepare).toList)
+    } catch {
+      case ex: Exception =>
+        Log.e(TAG, "getAllProfiles", ex)
+        app.track(ex)
+        None
+    }
+  }
+
   def getAllProfilesByElapsed: Option[List[Profile]] = {
     try {
       import scala.collection.JavaConversions._
       Option(dbHelper.profileDao.query(dbHelper.profileDao.queryBuilder.orderBy("elapsed", true).where().not().eq("elapsed", 0).prepare).toList
-      ++ dbHelper.profileDao.query(dbHelper.profileDao.queryBuilder.orderBy("elapsed", true).where().eq("elapsed", 0).prepare).toList)
+        ++ dbHelper.profileDao.query(dbHelper.profileDao.queryBuilder.orderBy("elapsed", true).where().eq("elapsed", 0).prepare).toList)
     } catch {
       case ex: Exception =>
         Log.e(TAG, "getAllProfiles", ex)

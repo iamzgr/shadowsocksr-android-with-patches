@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:orientation="vertical"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent">
+
+    <com.sugarsvalley.svpn.widget.SlidingMenu xmlns:android="http://schemas.android.com/apk/res/android"
+                                              android:scrollbars="none"
+                                              android:id="@+id/slideMenu"
+                                              android:layout_width="wrap_content"
+                                              android:layout_height="match_parent">
+
+        <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:orientation="horizontal" >
+
+            <include layout="@layout/layout_svpn_main_slide_menu" />
+
+            <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="top"
+                    android:background="@android:color/holo_blue_bright">
+
+                <ImageView
+                        android:id="@+id/iv_menu_open"
+                        android:layout_gravity="left"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:scaleType="fitXY"
+                        android:src="@drawable/ic_menu_icon"/>
+            </LinearLayout>
+        </LinearLayout>
+
+    </com.sugarsvalley.svpn.widget.SlidingMenu>
+
+</LinearLayout>

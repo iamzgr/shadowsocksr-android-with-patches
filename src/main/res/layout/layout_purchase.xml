@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="#e3d7f8"
+                >
+
+    <ImageView
+            android:id="@+id/iv_go_back"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_margin="20dp"
+            android:background="@drawable/ice_go_back"
+    />
+
+    <ImageView
+            android:id="@+id/iv_show_more"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_margin="20dp"
+            android:layout_alignParentRight="true"
+            android:background="@drawable/ice_more"
+    />
+
+    <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="100dp"
+            android:paddingLeft="40dp"
+            android:paddingRight="40dp">
+
+        <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="70dp"
+                android:layout_gravity="center_horizontal"
+                android:text="@string/vpn_buy_plan"
+                android:textColor="#4ec7b1"
+                android:textSize="30sp"
+        />
+
+        <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="70dp"
+                android:background="#e7ddf8"
+                android:paddingLeft="20dp"
+                android:paddingRight="20dp">
+
+            <ImageView
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:layout_centerVertical="true"
+                    android:src="@drawable/ice_plan_free"/>
+
+            <TextView
+                    android:id="@+id/tv_plan_free"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_centerVertical="true"
+                    android:gravity="center"
+                    android:text="@string/vpn_plan_a"
+                    android:textSize="20sp"
+                    android:textColor="@color/plan_text_color"
+            />
+        </RelativeLayout>
+
+        <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="70dp"
+                android:background="#e7ddf8"
+                android:paddingLeft="20dp"
+                android:paddingRight="20dp">
+
+            <ImageView
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:layout_centerVertical="true"
+                    android:src="@drawable/ice_plan_a"/>
+
+            <TextView
+                    android:id="@+id/tv_plan_a"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_centerVertical="true"
+                    android:gravity="center"
+                    android:text="@string/vpn_plan_a"
+                    android:textSize="20sp"
+                    android:textColor="@color/plan_text_color"
+            />
+        </RelativeLayout>
+
+        <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="70dp"
+                android:background="#e7ddf8"
+                android:layout_marginTop="10dp"
+                android:paddingLeft="20dp"
+                android:paddingRight="20dp">
+
+            <ImageView
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:layout_centerVertical="true"
+                    android:src="@drawable/ice_plan_b"/>
+
+            <TextView
+                    android:id="@+id/tv_plan_b"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_centerVertical="true"
+                    android:gravity="center"
+                    android:text="@string/vpn_plan_b"
+                    android:textSize="20sp"
+                    android:textColor="@color/plan_text_color"
+            />
+        </RelativeLayout>
+
+        <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="70dp"
+                android:background="#e7ddf8"
+                android:layout_marginTop="10dp"
+                android:paddingLeft="20dp"
+                android:paddingRight="20dp">
+
+            <ImageView
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:layout_centerVertical="true"
+                    android:src="@drawable/ice_plan_c"/>
+
+            <TextView
+                    android:id="@+id/tv_plan_c"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_centerVertical="true"
+                    android:gravity="center"
+                    android:text="@string/vpn_plan_c"
+                    android:textSize="20sp"
+                    android:textColor="@color/plan_text_color"
+            />
+        </RelativeLayout>
+
+    </LinearLayout>
+
+
+</RelativeLayout>

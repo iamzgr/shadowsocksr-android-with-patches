@@ -42,7 +42,7 @@ import android.content.{Context, Intent}
 import android.os.Bundle
 import com.github.shadowsocks.R
 import com.github.shadowsocks.ShadowsocksApplication.app
-import com.twofortyfouram.locale.api.{Intent => ApiIntent}
+import _root_.com.twofortyfouram.locale.api.{Intent => ApiIntent}
 
 object TaskerSettings {
   private val KEY_SWITCH_ON = "switch_on"

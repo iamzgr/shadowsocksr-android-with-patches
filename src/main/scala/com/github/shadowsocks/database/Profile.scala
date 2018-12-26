@@ -50,6 +50,12 @@ class Profile {
   var id: Int = 0
 
   @DatabaseField
+  var country: String = "US"
+
+  @DatabaseField
+  var location: String = "USA\nNew York"
+
+  @DatabaseField
   var name: String = "Untitled"
 
   @DatabaseField

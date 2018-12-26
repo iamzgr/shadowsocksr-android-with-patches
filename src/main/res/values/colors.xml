@@ -9,5 +9,8 @@
   <color name="material_accent_300">@color/material_blue_grey_300</color>
   <color name="material_accent_500">@color/material_blue_grey_500</color>
   <color name="material_accent_700">@color/material_blue_grey_700</color>
+  <color name="material_main_color">#dbfcfe</color>
+  <color name="material_main_color_pressed">#B6D0C9</color>
+  <color name="plan_text_color">#333333</color>
 
 </resources>

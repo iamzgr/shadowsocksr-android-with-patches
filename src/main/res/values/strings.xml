@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-  <string name="app_name">SSR</string>
+  <string name="app_name">Icecream VPN</string>
   <string name="quick_toggle">Toggle</string>
 
   <!-- global/misc category -->
@@ -209,4 +209,17 @@
   <!-- status -->
   <string name="sent">Sent:</string>
   <string name="received">Received:</string>
+
+  <string name="vpn_connect">Connect</string>
+  <string name="vpn_connecting">Connecting</string>
+  <string name="vpn_disconnecting">Disconnecting</string>
+  <string name="vpn_connected">Connected</string>
+  <string name="vpn_nodes_list">VPN Servers</string>
+  <string name="vpn_buy_plan">Buy me</string>
+  <string name="vpn_plan_free">Plan Free</string>
+  <string name="vpn_plan_a">Plan A</string>
+  <string name="vpn_plan_b">Plan B</string>
+  <string name="vpn_plan_c">Plan C</string>
+
+
 </resources>
